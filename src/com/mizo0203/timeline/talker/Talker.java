@@ -1,10 +1,6 @@
-package com.mizo0203.twitter.timeline.talker;
+package com.mizo0203.timeline.talker;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.PrintWriter;
+import java.io.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 

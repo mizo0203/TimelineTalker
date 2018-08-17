@@ -1,17 +1,13 @@
-package com.mizo0203.twitter.timeline.talker;
+package com.mizo0203.timeline.talker;
+
+import twitter4j.*;
+import twitter4j.conf.Configuration;
 
 import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import twitter4j.StallWarning;
-import twitter4j.Status;
-import twitter4j.StatusDeletionNotice;
-import twitter4j.StatusListener;
-import twitter4j.TwitterStream;
-import twitter4j.TwitterStreamFactory;
-import twitter4j.conf.Configuration;
 
-public class TwitterTimelineTalker {
+public class TimelineTalker {
 
   /**
    * ISO 639 言語コード - 日本語 (ja)
@@ -22,7 +18,7 @@ public class TwitterTimelineTalker {
   private final TwitterStream mTwitterStream;
   private final Talker mTalker;
 
-  public TwitterTimelineTalker(Configuration configuration, Talker talker) {
+  public TimelineTalker(Configuration configuration, Talker talker) {
     mTwitterStream = new TwitterStreamFactory(configuration).getInstance();
     mTwitterStream.addListener(new OnStatusEvent());
     mTalker = talker;

@@ -1,4 +1,4 @@
-package com.mizo0203.twitter.timeline.talker;
+package com.mizo0203.timeline.talker;
 
 import twitter4j.conf.Configuration;
 import twitter4j.conf.ConfigurationBuilder;
@@ -11,19 +11,19 @@ import twitter4j.conf.ConfigurationBuilder;
 public class Application {
 
   public static void main(String[] args) {
-    TwitterTimelineTalker twitterTimelineTalker;
+    TimelineTalker timelineTalker;
     Talker talker;
 
     try {
       talker = new Talker();
-      twitterTimelineTalker =
-          new TwitterTimelineTalker(new Arguments(args).twitterConfiguration, talker);
+      timelineTalker =
+              new TimelineTalker(new Arguments(args).twitterConfiguration, talker);
     } catch (IllegalArgumentException | IllegalStateException e) {
       System.err.println(e.getMessage());
       return;
     }
 
-    twitterTimelineTalker.start();
+    timelineTalker.start();
     talker.talkAsync("アプリケーションを起動しました", Talker.YukkuriVoice.REIMU);
   }
 

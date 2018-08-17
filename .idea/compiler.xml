@@ -6,11 +6,11 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
-        <module name="TwitterTimelineTalker" />
+        <module name="TimelineTalker"/>
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
-      <module name="TwitterTimelineTalker" target="1.7" />
+      <module name="TimelineTalker" target="1.7"/>
     </bytecodeTargetLevel>
   </component>
 </project>

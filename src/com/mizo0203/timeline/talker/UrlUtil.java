@@ -1,4 +1,4 @@
-package com.mizo0203.twitter.timeline.talker;
+package com.mizo0203.timeline.talker;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
