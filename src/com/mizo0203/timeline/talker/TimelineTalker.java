@@ -3,7 +3,11 @@ package com.mizo0203.timeline.talker;
 import twitter4j.*;
 import twitter4j.conf.Configuration;
 
+import java.util.Collections;
 import java.util.Locale;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -14,19 +18,11 @@ public class TimelineTalker {
    */
   public static final String LANG_JA = Locale.JAPAN.getLanguage();
 
-  private Talker.YukkuriVoice mYukkuriVoice = Talker.YukkuriVoice.REIMU;
-  private final TwitterStream mTwitterStream;
-  private final Talker mTalker;
+  private final RequestHomeTimelineTimerTask mRequestHomeTimelineTimerTask;
 
   public TimelineTalker(Configuration configuration, Talker talker) {
-    mTwitterStream = new TwitterStreamFactory(configuration).getInstance();
-    mTwitterStream.addListener(new OnStatusEvent());
-    mTalker = talker;
-  }
-
-  public void start() {
-    // OnStatusEvent に Twitter タイムラインが通知される
-    mTwitterStream.user();
+    Twitter twitter = new TwitterFactory(configuration).getInstance();
+    mRequestHomeTimelineTimerTask = new RequestHomeTimelineTimerTask(twitter, talker);
   }
 
   private static String getUserNameWithoutContext(String name) {
@@ -35,9 +31,64 @@ public class TimelineTalker {
     return m.replaceFirst("$1");
   }
 
-  private class OnStatusEvent implements StatusListener {
+  public void start() {
+    new Timer().schedule(mRequestHomeTimelineTimerTask, 0L, TimeUnit.MINUTES.toMillis(1));
+  }
 
-    public void onStatus(final Status status) {
+  private static class RequestHomeTimelineTimerTask extends TimerTask {
+
+    private static final int HOME_TIMELINE_COUNT_MAX = 200;
+    private static final int HOME_TIMELINE_COUNT_MIN = 1;
+
+    private final Twitter mTwitter;
+    private final Talker mTalker;
+
+    private Talker.YukkuriVoice mYukkuriVoice = Talker.YukkuriVoice.REIMU;
+
+    /**
+     * mStatusSinceId より大きい（つまり、より新しい） ID を持つ HomeTimeline をリクエストする
+     */
+    private long mStatusSinceId = 1L;
+
+    private boolean mIsUpdatedStatusSinceId = false;
+
+    private RequestHomeTimelineTimerTask(Twitter twitter, Talker talker) {
+      mTwitter = twitter;
+      mTalker = talker;
+    }
+
+    /**
+     * The action to be performed by this timer task.
+     */
+    @Override
+    public void run() {
+      try {
+        // mStatusSinceId が未更新ならば、 Status を 1 つだけ取得する
+        int count = mIsUpdatedStatusSinceId ? HOME_TIMELINE_COUNT_MAX : HOME_TIMELINE_COUNT_MIN;
+        Paging paging = new Paging(1, count, mStatusSinceId);
+        ResponseList<Status> statusResponseList = mTwitter.getHomeTimeline(paging);
+
+        if (statusResponseList.isEmpty()) {
+          return;
+        }
+
+        // mStatusSinceId を、取得した最新の ID に更新する
+        mStatusSinceId = statusResponseList.get(0).getId();
+        mIsUpdatedStatusSinceId = true;
+
+        // Status が古い順になるよう、 statusResponseList を逆順に並び替える
+        Collections.reverse(statusResponseList);
+
+        for (Status status : statusResponseList) {
+          onStatus(status);
+        }
+
+      } catch (TwitterException e) {
+        e.printStackTrace();
+      }
+    }
+
+    private void onStatus(final Status status) {
       if (!LANG_JA.equalsIgnoreCase(status.getLang())) {
         return;
       }
@@ -62,27 +113,6 @@ public class TimelineTalker {
       } else {
         mYukkuriVoice = Talker.YukkuriVoice.REIMU;
       }
-
     }
-
-    public void onDeletionNotice(StatusDeletionNotice sdn) {
-      System.err.println("onDeletionNotice.");
-    }
-
-    public void onTrackLimitationNotice(int i) {
-      System.err.println("onTrackLimitationNotice.(" + i + ")");
-    }
-
-    public void onScrubGeo(long lat, long lng) {
-      System.err.println("onScrubGeo.(" + lat + ", " + lng + ")");
-    }
-
-    public void onException(Exception excptn) {
-      System.err.println("onException.");
-    }
-
-    @Override
-    public void onStallWarning(StallWarning arg0) {}
   }
-
 }
